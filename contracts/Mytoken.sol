@@ -11,10 +11,10 @@ contract MyToken is ERC20 {
     address public owner;
     uint256 public tokenPrice;
     uint256 public totalSupplyLimit;
-    mapping(addres => uint256) public balances;
+    mapping(address => uint256) public balances;
 
     event TokenPurchase(address indexed buyer, uint256 amount, uint256 totalPrice);
-    event TokenSale(addres indexed selller, uint256 amount, uint256 totalPrice);
+    event TokenSale(address indexed selller, uint256 amount, uint256 totalPrice);
 
     constructor() ERC20("MyToken", "MT") {
         owner= msg.sender;
@@ -38,12 +38,21 @@ contract MyToken is ERC20 {
 
         //  return change
         if (msg.value > totalPrice) {
-            payable(msg.sender).transfer(msg.value-totalPrice)
+            payable(msg.sender).transfer(msg.value - totalPrice);
         }
     }
 
     function sellTokens(uint256 amount) external{
         require(amount>0, "Amount must be greather than 0");
-        require(balances[msg.sender]) >= amount
+        require(balances[msg.sender] >= amount, "Insufficient token balance");
+
+        uint256 totalPrice= tokenPrice.mul(amount);
+        balances[msg.sender]= balances [msg.sender].sub(amount);
+        balances[owner]=balances[owner].add(amount);
+
+        emit Transfer(msg.sender, owner, amount);
+        emit TokenSale(msg.sender,amount, totalPrice);
+
+        payable(msg.sender).transfer(totalPrice);
     }
 }
