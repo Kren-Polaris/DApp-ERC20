@@ -21,26 +21,24 @@ contract MyToken is ERC20 {
         tokenPrice = 1 * 1 ether; // 1 token= 1 ether(1 dolar)
         totalSupplyLimit = 100; // maximun amount of tokens
         // Token creation
-        _mint(owner, totalSupplyLimit);
+        _mint(owner, totalSupplyLimit* (10 ** uint256(decimals())));
     }
 
     //Buy tokens
-    function buyTokens(uint256 amount) external payable{
-        require(amount>0, 'Amount muts be greather than 0');
-        require(totalSupply() >= amount, 'Not enough tokens available');
-        uint256 totalPrice = tokenPrice.mul(amount);
-        require(msg.value >= totalPrice, "Insufficient funds");
+    function buyTokens(uint256 amount) external payable {
+    require(amount > 0, 'Amount must be greater than 0');
+    uint256 totalPrice = tokenPrice.mul(amount);
+    require(msg.value >= totalPrice, "Insufficient funds");
 
-        balances[owner] = balances[owner].sub(amount);
-        balances[msg.sender] = balances[msg.sender].add(amount);
-        emit Transfer(owner, msg.sender,amount);
-        emit TokenPurchase(msg.sender, amount, totalPrice);
+    _transfer(owner, msg.sender, amount);
 
-        //  return change
-        if (msg.value > totalPrice) {
-            payable(msg.sender).transfer(msg.value - totalPrice);
-        }
+    emit TokenPurchase(msg.sender, amount, totalPrice);
+
+    // Return change if there is any
+    if (msg.value > totalPrice) {
+        payable(msg.sender).transfer(msg.value - totalPrice);
     }
+}
 
     function sellTokens(uint256 amount) external{
         require(amount>0, "Amount must be greather than 0");
